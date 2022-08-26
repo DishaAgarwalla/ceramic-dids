@@ -2,10 +2,12 @@ const { randomBytes } = require("@stablelib/random");
 const { SiweMessage, Cacao } = require("ceramic-cacao");
 const config = require("../utils/config");
 const axios = require("axios");
+const { ethers } = require("hardhat");
 
 console.log(config.chainId);
 const provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
-const wallet = new ethers.Wallet(process.env.MY_PRIVATE_KEY, provider);
+// const wallet = new ethers.Wallet(process.env.MY_PRIVATE_KEY, provider);
+const wallet = ethers.Wallet.fromMnemonic(config.mnemonic);
 console.log("wallet: ", wallet.address);
 
 const addCapToDid = async (wallet, didKey, resource) => {
@@ -26,8 +28,10 @@ const addCapToDid = async (wallet, didKey, resource) => {
     resources: [resource],
   });
   // Sign CACAO with did:pkh
+  console.log("wallet for signing: ", wallet.address);
   const signature = await wallet.signMessage(siweMessage.toMessage());
   siweMessage.signature = signature;
+  console.log("siwe message: ", siweMessage);
   const capability = Cacao.fromSiweMessage(siweMessage);
   // Create new did:key with capability attached
   const didKeyWithCapability = didKey.withCapability(capability);
@@ -36,16 +40,23 @@ const addCapToDid = async (wallet, didKey, resource) => {
 };
 
 // didKey
-const createDidKey = async () => {
+const createDidKey = async (wallet) => {
   const { Ed25519Provider } = await import("key-did-provider-ed25519");
   const { getResolver } = await import("key-did-resolver");
   const { DID } = await import("dids");
 
   // Create did:key for the dApp
   const didKeyProvider = new Ed25519Provider(randomBytes(32));
+  // didKey = new DID({
+  //   provider: didKeyProvider,
+  //   resolver: getResolver(),
+  // });
+  // await didKey.authenticate();
+  console.log("didKey parent: ", wallet.address);
   didKey = new DID({
     provider: didKeyProvider,
     resolver: getResolver(),
+    parent: `did:pkh:eip155:1:${wallet.address}`,
   });
   await didKey.authenticate();
   return didKey;
@@ -66,13 +77,14 @@ const getAccessToken = async (data) => {
     const res = await axios.post(url, data);
     console.log(res.data);
   } catch (err) {
-    console.error(err);
-    // console.log("error getting access token");
+    // console.error(err);
+    console.log("error getting access token");
   }
 };
 
 const run = async () => {
-  const didKey = await createDidKey();
+  const didKey = await createDidKey(wallet);
+  console.log(didKey);
   const didKeyWithCapability = await addCapToDid(wallet, didKey, `ceramic://*`);
   console.log(didKey);
   //   console.log(didKeyWithCapability);

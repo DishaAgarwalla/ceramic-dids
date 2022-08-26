@@ -16,4 +16,4 @@ const configMainnet = {
   chainId: 137,
 };
 
-module.exports = configMainnet;
+module.exports = configTestnet;
