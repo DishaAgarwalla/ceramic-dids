@@ -1,9 +1,9 @@
 const { randomBytes } = require("@stablelib/random");
-
 const { SiweMessage, Cacao } = require("ceramic-cacao");
 const config = require("../utils/config");
 const axios = require("axios");
 
+console.log(config.chainId);
 const provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
 const wallet = new ethers.Wallet(process.env.MY_PRIVATE_KEY, provider);
 console.log("wallet: ", wallet.address);
@@ -16,7 +16,7 @@ const addCapToDid = async (wallet, didKey, resource) => {
     address: wallet.address,
     chainId: config.chainId,
     statement: "Give this application access to some of your data on Ceramic",
-    uri: didKey.id,
+    uri: didKey.id, // changes every time
     version: "1",
     nonce: "23423423",
     issuedAt: new Date().toISOString(),
@@ -63,11 +63,11 @@ const getAccessToken = async (data) => {
   try {
     const url = `${config.dgApiBaseUrl}/authentication/authentication`;
     console.log("url: ", url);
-    const res = await axios.post(url, data, configOptions);
+    const res = await axios.post(url, data);
     console.log(res.data);
   } catch (err) {
-    // console.error(err);
-    console.log("error getting access token");
+    console.error(err);
+    // console.log("error getting access token");
   }
 };
 
@@ -78,12 +78,17 @@ const run = async () => {
   //   console.log(didKeyWithCapability);
 
   // have the didKey -> have to couple it with the session time
-  const jws = await didKeyWithCapability.createDagJWS(
+  const { jws, linkedBlock } = await didKeyWithCapability.createDagJWS(
     didKeyWithCapability.capability
   );
   console.log("jws: ", jws);
+  if (!jws.link) throw new Error("no jws");
+  //   console.log(jws.signatures);
 
-  const res = await getAccessToken(jws);
+  console.log(Array.from(linkedBlock));
+  const data = { proof: jws, cacaoBlock: Array.from(linkedBlock) };
+  //   console.log(data);
+  const res = await getAccessToken(data);
 };
 
 run();
