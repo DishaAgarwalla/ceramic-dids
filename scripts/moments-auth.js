@@ -107,7 +107,7 @@ async function web3Authenticate(
       now.getTime() + 30 * 24 * 60 * 60 * 1000 // 30 days
     ).toISOString(),
     resources: [`ceramic://*`],
-    domain: "",
+    domain: "ethbarcelona.com",
   });
 
   console.log("did: ", did);

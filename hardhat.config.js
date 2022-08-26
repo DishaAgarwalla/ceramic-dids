@@ -30,16 +30,10 @@ module.exports = {
     //   url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
     //   accounts: [process.env.PRIVATE_KEY],
     // },
-    // polygon: {
-    //   //`https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
-    //   url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
-    //   accounts: [
-    //     process.env.ETH_BCN_PRIVATE_KEY,
-    //     process.env.POAP_MAINNET_PRIVATE_KEY,
-    //   ],
-    //   // gasPrice: 35000000000,
-    //   // gasPrice: 350000000,
-    // },
+    polygon: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+      accounts: [process.env.MY_PRIVATE_KEY],
+    },
     mumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
       accounts: [process.env.MY_PRIVATE_KEY],
