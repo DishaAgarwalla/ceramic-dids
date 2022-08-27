@@ -32,7 +32,9 @@ const addCapToDid = async (wallet, didKey, resource) => {
   const signature = await wallet.signMessage(siweMessage.toMessage());
   siweMessage.signature = signature;
   console.log("siwe message: ", siweMessage);
+  // capabilty created with siwe message using cacao -> how?
   const capability = Cacao.fromSiweMessage(siweMessage);
+  console.log("capability: ", capability);
   // Create new did:key with capability attached
   const didKeyWithCapability = didKey.withCapability(capability);
   await didKeyWithCapability.authenticate();
@@ -47,16 +49,11 @@ const createDidKey = async (wallet) => {
 
   // Create did:key for the dApp
   const didKeyProvider = new Ed25519Provider(randomBytes(32));
-  // didKey = new DID({
-  //   provider: didKeyProvider,
-  //   resolver: getResolver(),
-  // });
-  // await didKey.authenticate();
   console.log("didKey parent: ", wallet.address);
   didKey = new DID({
     provider: didKeyProvider,
     resolver: getResolver(),
-    parent: `did:pkh:eip155:1:${wallet.address}`,
+    parent: `did:pkh:eip155:${config.chainId}:${wallet.address}`,
   });
   await didKey.authenticate();
   return didKey;
@@ -84,12 +81,12 @@ const getAccessToken = async (data) => {
 
 const run = async () => {
   const didKey = await createDidKey(wallet);
-  console.log(didKey);
+  console.log("didKey: ", didKey);
   const didKeyWithCapability = await addCapToDid(wallet, didKey, `ceramic://*`);
-  console.log(didKey);
-  //   console.log(didKeyWithCapability);
+  console.log("with capability: ", didKeyWithCapability);
 
   // have the didKey -> have to couple it with the session time
+  // with capability you create jws proof
   const { jws, linkedBlock } = await didKeyWithCapability.createDagJWS(
     didKeyWithCapability.capability
   );
